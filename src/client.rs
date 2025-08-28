@@ -1,8 +1,7 @@
-use crate::crypto::Wallet;
 use crate::errors::{Result, XrplError};
 use crate::transactions::{PaymentTransaction, TrustSetTransaction};
 use crate::websocket::WebSocketClient;
-use serde_json::{Value, json};
+use serde_json::Value;
 
 pub struct XrplClient {
     ws_client: WebSocketClient,
@@ -30,10 +29,10 @@ impl XrplClient {
     pub async fn get_current_ledger_sequence(&self) -> Result<u32> {
         let response = self.ws_client.ledger_current().await?;
 
-        if let Some(result) = response.get("result") {
-            if let Some(ledger_index) = result.get("ledger_current_index") {
-                return Ok(ledger_index.as_u64().unwrap_or(0) as u32);
-            }
+        if let Some(result) = response.get("result")
+            && let Some(ledger_index) = result.get("ledger_current_index")
+        {
+            return Ok(ledger_index.as_u64().unwrap_or(0) as u32);
         }
 
         Err(XrplError::Network(
@@ -45,12 +44,11 @@ impl XrplClient {
     pub async fn get_account_sequence(&self, address: &str) -> Result<u32> {
         let response = self.get_account_info(address).await?;
 
-        if let Some(result) = response.get("result") {
-            if let Some(account_data) = result.get("account_data") {
-                if let Some(sequence) = account_data.get("Sequence") {
-                    return Ok(sequence.as_u64().unwrap_or(0) as u32);
-                }
-            }
+        if let Some(result) = response.get("result")
+            && let Some(account_data) = result.get("account_data")
+            && let Some(sequence) = account_data.get("Sequence")
+        {
+            return Ok(sequence.as_u64().unwrap_or(0) as u32);
         }
 
         Err(XrplError::Network(
@@ -62,12 +60,11 @@ impl XrplClient {
     pub async fn get_base_fee(&self) -> Result<u64> {
         let response = self.ws_client.fee().await?;
 
-        if let Some(result) = response.get("result") {
-            if let Some(drops) = result.get("drops") {
-                if let Some(base_fee) = drops.get("base_fee") {
-                    return Ok(base_fee.as_str().unwrap_or("12").parse().unwrap_or(12));
-                }
-            }
+        if let Some(result) = response.get("result")
+            && let Some(drops) = result.get("drops")
+            && let Some(base_fee) = drops.get("base_fee")
+        {
+            return Ok(base_fee.as_str().unwrap_or("12").parse().unwrap_or(12));
         }
 
         Ok(12)
@@ -134,9 +131,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_client_creation() {
-        let client = XrplClient::testnet();
-        // Just ensure we can create the client
-        assert!(true);
+        let _client = XrplClient::testnet();
     }
 
     #[tokio::test]

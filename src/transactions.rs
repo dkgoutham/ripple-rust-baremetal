@@ -1,4 +1,4 @@
-use crate::errors::{Result, XrplError};
+use crate::errors::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -124,14 +124,10 @@ impl TrustSetTransaction {
 
 /// Simple transaction serialization for signing (placeholder)
 /// This will be expanded with proper XRPL binary format later
-pub fn serialize_for_signing(tx_json: &Value) -> Result<String> {
-    // For now, return the JSON string - we'll implement proper binary serialization later
+pub fn serialize_for_signing(_tx_json: &Value) -> Result<String> {
+    // For now, return a placeholder - we'll implement proper binary serialization later
     // This is just to make Phase 1 compilable
-    let json_str = serde_json::to_string(tx_json)?;
-    Ok(format!(
-        "PLACEHOLDER_FOR_BINARY_SERIALIZATION_{}",
-        hex::encode(json_str)
-    ))
+    Ok("PLACEHOLDER_FOR_BINARY_SERIALIZATION".to_string())
 }
 
 #[cfg(test)]

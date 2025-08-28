@@ -1,5 +1,4 @@
 use crate::errors::{Result, XrplError};
-use sha2::{Digest, Sha256};
 
 const CLASSIC_ADDRESS_PREFIX: [u8; 1] = [0x00];
 // SECP256K1 seeds
@@ -20,7 +19,7 @@ pub fn encode_classic_address(account_id: &[u8]) -> Result<String> {
     payload.extend_from_slice(account_id);
 
     let result = bs58::encode(payload)
-        .with_alphabet(&bs58::Alphabet::RIPPLE)
+        .with_alphabet(bs58::Alphabet::RIPPLE)
         .with_check()
         .into_string();
 
@@ -30,12 +29,12 @@ pub fn encode_classic_address(account_id: &[u8]) -> Result<String> {
 /// Decode a classic XRPL address to account ID
 pub fn decode_classic_address(address: &str) -> Result<Vec<u8>> {
     let decoded = bs58::decode(address)
-        .with_alphabet(&bs58::Alphabet::RIPPLE)
+        .with_alphabet(bs58::Alphabet::RIPPLE)
         .with_check(None)
         .into_vec()
-        .map_err(|e| XrplError::Base58Decode(format!("Failed to decode address: {:?}", e)))?;
+        .map_err(|e| XrplError::Base58Decode(format!("Failed to decode address: {e:?}")))?;
 
-    if decoded.len() < 1 {
+    if decoded.is_empty() {
         return Err(XrplError::InvalidAddress(
             "Decoded data too short".to_string(),
         ));
@@ -72,7 +71,7 @@ pub fn encode_seed(seed_bytes: &[u8]) -> Result<String> {
     payload.extend_from_slice(seed_bytes);
 
     let result = bs58::encode(payload)
-        .with_alphabet(&bs58::Alphabet::RIPPLE)
+        .with_alphabet(bs58::Alphabet::RIPPLE)
         .with_check()
         .into_string();
 
@@ -82,14 +81,14 @@ pub fn encode_seed(seed_bytes: &[u8]) -> Result<String> {
 /// Decode a seed from base58 format
 pub fn decode_seed(seed_str: &str) -> Result<Vec<u8>> {
     let decoded = bs58::decode(seed_str)
-        .with_alphabet(&bs58::Alphabet::RIPPLE)
+        .with_alphabet(bs58::Alphabet::RIPPLE)
         .with_check(None)
         .into_vec()
-        .map_err(|e| XrplError::Base58Decode(format!("Failed to decode seed: {:?}", e)))?;
+        .map_err(|e| XrplError::Base58Decode(format!("Failed to decode seed: {e:?}")))?;
 
     // Try ED25519 prefix first
     if decoded.len() >= ED25519_SEED_PREFIX.len()
-        && &decoded[..ED25519_SEED_PREFIX.len()] == &ED25519_SEED_PREFIX
+        && decoded[..ED25519_SEED_PREFIX.len()] == ED25519_SEED_PREFIX
     {
         let seed_bytes = &decoded[ED25519_SEED_PREFIX.len()..];
 
@@ -105,7 +104,7 @@ pub fn decode_seed(seed_str: &str) -> Result<Vec<u8>> {
 
     // Try SECP256K1 prefix
     if decoded.len() >= FAMILY_SEED_PREFIX.len()
-        && &decoded[..FAMILY_SEED_PREFIX.len()] == &FAMILY_SEED_PREFIX
+        && decoded[..FAMILY_SEED_PREFIX.len()] == FAMILY_SEED_PREFIX
     {
         let seed_bytes = &decoded[FAMILY_SEED_PREFIX.len()..];
 
@@ -120,8 +119,7 @@ pub fn decode_seed(seed_str: &str) -> Result<Vec<u8>> {
     }
 
     Err(XrplError::InvalidSeed(format!(
-        "Invalid seed prefix. Expected ED25519 {:?} or SECP256K1 {:?}",
-        ED25519_SEED_PREFIX, FAMILY_SEED_PREFIX
+        "Invalid seed prefix. Expected ED25519 {ED25519_SEED_PREFIX:?} or SECP256K1 {FAMILY_SEED_PREFIX:?}"
     )))
 }
 

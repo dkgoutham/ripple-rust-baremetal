@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
 async fn test_crypto() -> anyhow::Result<()> {
     // Generate a new seed
     let seed = generate_seed()?;
-    println!("   Generated seed: {}", seed);
+    println!("   Generated seed: {seed}");
 
     // Derive wallet from seed
     let wallet = derive_keypair_from_seed(&seed)?;
@@ -37,10 +37,7 @@ async fn test_crypto() -> anyhow::Result<()> {
 
     // Verify seed starts with 's' and address starts with 'r'
     if !seed.starts_with('s') {
-        println!(
-            "   Warning: Generated seed doesn't start with 's': {}",
-            seed
-        );
+        println!("   Warning: Generated seed doesn't start with 's': {seed}");
     }
     if !wallet.classic_address.starts_with('r') {
         println!(
@@ -65,7 +62,7 @@ async fn test_crypto() -> anyhow::Result<()> {
                 "   User seed derived address: {}",
                 user_wallet.classic_address
             );
-            println!("   Expected address:         {}", expected_address);
+            println!("   Expected address:         {expected_address}");
             if user_wallet.classic_address == expected_address {
                 println!("   Perfect match!");
             } else {
@@ -80,14 +77,14 @@ async fn test_crypto() -> anyhow::Result<()> {
                             "   Old test seed result:     {}",
                             old_wallet.classic_address
                         );
-                        println!("   Old expected:             {}", old_expected);
+                        println!("   Old expected:             {old_expected}");
                     }
-                    Err(e) => println!("   Old seed test failed: {}", e),
+                    Err(e) => println!("   Old seed test failed: {e}"),
                 }
             }
         }
         Err(e) => {
-            println!("   User seed derivation failed: {}", e);
+            println!("   User seed derivation failed: {e}");
         }
     }
 
@@ -102,7 +99,7 @@ fn test_encoding() -> anyhow::Result<()> {
     println!("   Decoded account ID: {}", hex::encode(&account_id));
 
     let re_encoded = encode_classic_address(&account_id)?;
-    println!("   Re-encoded address: {}", re_encoded);
+    println!("   Re-encoded address: {re_encoded}");
 
     assert_eq!(test_address, re_encoded);
     println!("  Address encoding/decoding working");
@@ -113,12 +110,12 @@ fn test_encoding() -> anyhow::Result<()> {
         Ok(seed_bytes) => {
             println!("   Decoded seed bytes: {}", hex::encode(&seed_bytes));
             let re_encoded_seed = encode_seed(&seed_bytes)?;
-            println!("   Re-encoded seed: {}", re_encoded_seed);
+            println!("   Re-encoded seed: {re_encoded_seed}");
             assert_eq!(test_seed, re_encoded_seed);
             println!("   Seed encoding/decoding working");
         }
         Err(e) => {
-            println!("   Seed decode failed: {}", e);
+            println!("   Seed decode failed: {e}");
             println!("   Seed test skipped (will generate new seed instead)");
         }
     }
@@ -131,24 +128,21 @@ async fn test_websocket_client() -> anyhow::Result<()> {
 
     // Test basic connectivity
     let ledger_seq = client.get_current_ledger_sequence().await?;
-    println!("   Current ledger: {}", ledger_seq);
+    println!("   Current ledger: {ledger_seq}");
 
     let base_fee = client.get_base_fee().await?;
-    println!("   Base fee: {} drops", base_fee);
+    println!("   Base fee: {base_fee} drops");
 
     // Test with user's testnet account
     let test_account = "rGWhRLRsS3xV6TQPNeaSidvYXX6fmv2ZCo";
     match client.get_account_info(test_account).await {
         Ok(response) => {
             if let Some(status) = response.get("status") {
-                println!("   Account query status: {}", status);
+                println!("   Account query status: {status}");
             }
         }
         Err(e) => {
-            println!(
-                "   Account query failed (expected if account doesn't exist): {}",
-                e
-            );
+            println!("   Account query failed (expected if account doesn't exist): {e}");
         }
     }
 

@@ -38,11 +38,11 @@ impl WebSocketClient {
         });
 
         // Merge params into request
-        if let Value::Object(params_map) = params {
-            if let Value::Object(request_map) = &mut request {
-                for (key, value) in params_map {
-                    request_map.insert(key, value);
-                }
+        if let Value::Object(params_map) = params
+            && let Value::Object(request_map) = &mut request
+        {
+            for (key, value) in params_map {
+                request_map.insert(key, value);
             }
         }
 
@@ -57,10 +57,10 @@ impl WebSocketClient {
                 let response: Value = serde_json::from_str(&text)?;
 
                 // Check if this is our response
-                if let Some(id) = response.get("id") {
-                    if id == &json!(request_id) {
-                        return Ok(response);
-                    }
+                if let Some(id) = response.get("id")
+                    && id == &json!(request_id)
+                {
+                    return Ok(response);
                 }
             }
         }

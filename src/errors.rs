@@ -5,7 +5,7 @@ pub type Result<T> = std::result::Result<T, XrplError>;
 #[derive(Error, Debug)]
 pub enum XrplError {
     #[error("WebSocket error: {0}")]
-    WebSocket(#[from] tungstenite::Error),
+    WebSocket(Box<tungstenite::Error>),
 
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
@@ -36,4 +36,11 @@ pub enum XrplError {
 
     #[error("Other error: {0}")]
     Other(#[from] anyhow::Error),
+}
+
+// Custom From implementation for boxed tungstenite errors
+impl From<tungstenite::Error> for XrplError {
+    fn from(err: tungstenite::Error) -> Self {
+        XrplError::WebSocket(Box::new(err))
+    }
 }

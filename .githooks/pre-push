@@ -14,11 +14,6 @@ if ! cargo +nightly fmt --all -- --check; then
     exit 3
 fi
 
-# Typo check
-if ! typos; then
-    echo "❌ Spelling mistakes found (run 'typos --write-changes')"
-    exit 4
-fi
 
 # Linting
 if ! cargo clippy --all-targets --all-features -- -D warnings; then

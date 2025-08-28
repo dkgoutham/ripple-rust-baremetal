@@ -1,10 +1,9 @@
-use crate::encoding::{decode_seed, encode_classic_address, encode_seed};
+use crate::encoding::{decode_seed, encode_classic_address};
 use crate::errors::{Result, XrplError};
 use core::convert::TryInto;
 use ed25519_dalek::{SecretKey as Ed25519SecretKey, Signer, SigningKey, VerifyingKey};
 use rand::RngCore;
 use ripemd::Ripemd160;
-use secp256k1::{PublicKey, Scalar, Secp256k1, SecretKey};
 use sha2::{Digest, Sha256, Sha512};
 
 #[derive(Debug)]
@@ -36,7 +35,7 @@ fn encode_seed_secp256k1(seed_bytes: &[u8]) -> Result<String> {
     payload.extend_from_slice(seed_bytes);
 
     let result = bs58::encode(payload)
-        .with_alphabet(&bs58::Alphabet::RIPPLE)
+        .with_alphabet(bs58::Alphabet::RIPPLE)
         .with_check()
         .into_string();
 
@@ -78,15 +77,15 @@ enum CryptoAlgorithm {
 fn get_algorithm_from_seed(seed_str: &str) -> Result<CryptoAlgorithm> {
     // Decode to see the prefix
     let decoded = bs58::decode(seed_str)
-        .with_alphabet(&bs58::Alphabet::RIPPLE)
+        .with_alphabet(bs58::Alphabet::RIPPLE)
         .with_check(None)
         .into_vec()
-        .map_err(|e| XrplError::Base58Decode(format!("Failed to decode seed: {:?}", e)))?;
+        .map_err(|e| XrplError::Base58Decode(format!("Failed to decode seed: {e:?}")))?;
 
     // Check prefixes
-    if decoded.len() >= 3 && &decoded[..3] == &[0x01, 0xE1, 0x4B] {
+    if decoded.len() >= 3 && decoded[..3] == [0x01, 0xE1, 0x4B] {
         Ok(CryptoAlgorithm::ED25519)
-    } else if decoded.len() >= 1 && decoded[0] == 0x21 {
+    } else if !decoded.is_empty() && decoded[0] == 0x21 {
         Ok(CryptoAlgorithm::SECP256K1)
     } else {
         Err(XrplError::InvalidSeed("Unknown seed algorithm".to_string()))
@@ -210,12 +209,12 @@ fn derive_secp256k1_final(
     let intermediate_scalar = secp256k1::Scalar::from(intermediate_private);
     let final_private = root_private
         .add_tweak(&intermediate_scalar)
-        .map_err(|e| XrplError::Crypto(format!("Failed to add private keys: {}", e)))?;
+        .map_err(|e| XrplError::Crypto(format!("Failed to add private keys: {e}")))?;
 
     // Add public keys (elliptic curve point addition)
     let final_public = root_public
         .combine(&intermediate_public)
-        .map_err(|e| XrplError::Crypto(format!("Failed to combine public keys: {}", e)))?;
+        .map_err(|e| XrplError::Crypto(format!("Failed to combine public keys: {e}")))?;
 
     Ok((final_public, final_private))
 }
@@ -242,7 +241,7 @@ pub fn get_account_id_from_public_key(public_key_hex: &str) -> Result<Vec<u8>> {
     let sha_result = sha256.finalize();
 
     let mut ripemd = Ripemd160::new();
-    ripemd.update(&sha_result);
+    ripemd.update(sha_result);
     let account_id = ripemd.finalize();
 
     Ok(account_id.to_vec())
@@ -272,6 +271,7 @@ pub fn sign_message(message: &[u8], private_key: &str) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::encoding::encode_seed;
 
     #[test]
     fn test_seed_generation() {
@@ -325,16 +325,16 @@ mod tests {
     #[test]
     fn test_user_seed() {
         // Test with user's actual seed and address
-        let user_seed = "sEdV8i9x5UaBaVKCCe7j71Dv8DMEDmZ";
-        let expected_address = "rGWhRLRsS3xV6TQPNeaSidvYXX6fmv2ZCo";
+        let user_seed = "sEd78sQ1WwEv6h7WGBR7Y3DrkiMmhri";
+        let expected_address = "r4dSxEV1nUjSnbA1xXZPtq5zV5WhcDWWeX";
 
         match derive_keypair_from_seed(user_seed) {
             Ok(wallet) => {
                 println!("Derived address: {}", wallet.classic_address);
-                println!("Expected address: {}", expected_address);
+                println!("Expected address: {expected_address}");
             }
             Err(e) => {
-                println!("User seed derivation failed: {}", e);
+                println!("User seed derivation failed: {e}");
             }
         }
     }
