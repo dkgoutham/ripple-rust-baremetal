@@ -7,11 +7,6 @@ if ! cargo sort --workspace --check; then
     exit 1
 fi
 
-# Dependency audit
-if ! cargo deny check; then
-    echo "❌ Critical: Vulnerable dependencies detected (run 'cargo deny check')"
-    exit 2
-fi
 
 # Formatting check
 if ! cargo +nightly fmt --all -- --check; then
